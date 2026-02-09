@@ -1,6 +1,6 @@
 # HIPs Single-Hazard Causal Diagram
 
-Visualizes "what causes this hazard" and "what it causes" for a single [UNDRR Hazard Information Profiles (HIPs)](https://www.preventionweb.net/drr-glossary/hips) hazard, grouped by hazard type. Designed for embedding via iframe on other sites.
+Visualizes "what causes this hazard" and "what it causes" for a single [UNDRR Hazard Information Profiles (HIPs)](https://www.preventionweb.net/drr-glossary/hips) hazard, grouped by hazard type. Designed for embedding on other sites.
 
 This project is a focused companion to [hips-multihazard](https://github.com/khawkins98/hips-multihazard), which renders the full interactive graph of all 281 HIPs. Where that project is the atlas, this is the single-page map.
 
@@ -16,7 +16,26 @@ Select a hazard via query parameter:
 
 ### Embedding
 
-Drop this into any page to embed a diagram:
+Add a container element and the embed script to any page:
+
+```html
+<div data-hips-diagram="TL0305"></div>
+<script src="https://khawkins98.github.io/hips-multi-hazard-diagram/hips-diagram.js"></script>
+```
+
+The script auto-discovers all `data-hips-diagram` containers and renders a diagram into each one. Multiple diagrams on one page are supported:
+
+```html
+<div data-hips-diagram="TL0305"></div>
+<div data-hips-diagram="MH0607"></div>
+<script src="https://khawkins98.github.io/hips-multi-hazard-diagram/hips-diagram.js"></script>
+```
+
+CSS is scoped to the diagram container, so it won't affect styles on your page.
+
+#### Iframe fallback
+
+If you prefer an iframe, you can use the standalone page directly:
 
 ```html
 <iframe
@@ -29,7 +48,7 @@ Drop this into any page to embed a diagram:
 ></iframe>
 ```
 
-The diagram scales to fit the iframe width (up to 860px). Height depends on how many causal relationships the hazard has — 600px works for most, but hazards with many connections (like MH0603 Flash Flooding) may need 800px or more. Use `loading="lazy"` if embedding multiple diagrams on one page.
+Height depends on how many causal relationships the hazard has — 600px works for most, but hazards with many connections (like MH0603 Flash Flooding) may need 800px or more.
 
 ## Development
 
@@ -37,6 +56,7 @@ The diagram scales to fit the iframe width (up to 860px). Height depends on how 
 npm install          # install dependencies
 npm run dev          # start Vite dev server
 npm run build        # production build to dist/
+npm run build:embed  # build embed script (dist/hips-diagram.js)
 npm run preview      # preview production build locally
 ```
 
@@ -75,7 +95,9 @@ When a section has multiple rows, a vertical conduit runs along the right side (
 ```
 src/
   main.js                  # Entry point: URL routing, loading/error states
+  embed.js                 # Embed entry point: auto-init, CSS injection, fetch + render
   styles.css               # All styles: grid layout, type-box colors, connectors
+  embed-styles.css         # Scoped styles for embed (no global resets)
   data/
     fetch-hip.js           # API fetch + JSON-LD parsing + groupByType
     hazard-types.js        # Prefix-to-type mapping, color palette
