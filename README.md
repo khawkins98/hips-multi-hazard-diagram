@@ -112,6 +112,25 @@ src/
 
 Vite for build tooling, vanilla JS with no runtime dependencies, CSS grid for box layout, SVG for connector lines only.
 
+## Hazard type color palette
+
+Colors are sourced from the UNDRR-ISC Hazard Definition & Classification Review Technical Report wheel diagram (page 5). Each hazard type has a primary color (used for borders and headers) and a light tint (used for box backgrounds).
+
+| Type | Prefix | Primary (border) | Background (tint) | Visual |
+|------|--------|------------------|--------------------|--------|
+| Meteorological & Hydrological | MH | `#3AAE2B` (green) | `#E8F5E5` | Bright green |
+| Biological | BI | `#1A1A1A` (black) | `#E8E8E8` | Black |
+| Chemical | CH | `#5B92C5` (blue) | `#ECF2F9` | Medium blue |
+| Extraterrestrial | ET | `#E8792B` (orange) | `#FCF0E8` | Orange |
+| Societal | SO | `#8B3FA0` (purple) | `#F2E8F6` | Purple / magenta |
+| Technological | TL | `#B8860B` (dark gold) | `#F5EDD6` | Dark gold / mustard |
+| Geological | GH | `#C21E2C` (red) | `#F9E6E8` | Deep red / crimson |
+| Environmental | EN | `#1B355F` (navy) | `#E3E8EF` | Dark navy blue |
+
+Fallback for unknown types: border `#9E9E9E`, background `#F5F5F5` (gray).
+
+These values are defined in `src/data/hazard-types.js`.
+
 ## Data source
 
 Data comes from the PreventionWeb API at `https://www.preventionweb.net/api/terms/hips/{code}`. The response is JSON-LD with `xkos:causedBy` and `xkos:causes` arrays. Hazard type is derived from the 2-letter identifier prefix (BI, MH, TL, CH, GH, EN, ET, SO).

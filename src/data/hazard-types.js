@@ -1,7 +1,8 @@
 /**
  * Hazard type definitions: prefix-to-type mapping and color palette.
- * Colors adapted from hips-multihazard parent project, adjusted for
- * the diagram's light-background context per PRD color spec.
+ * Colors sourced from the UNDRR-ISC Hazard Definition & Classification
+ * Review Technical Report wheel diagram (page 5).
+ * Border = circle color from the wheel; bg = light tint for diagram boxes.
  */
 
 export const PREFIX_TO_TYPE = {
@@ -16,14 +17,14 @@ export const PREFIX_TO_TYPE = {
 };
 
 export const TYPE_COLORS = {
-  'Biological':                       { border: '#F44336', bg: '#FDECEA' },
-  'Meteorological and Hydrological':  { border: '#00796B', bg: '#E0F2F1' },
-  'Technological':                    { border: '#F9A825', bg: '#FFF8E1' },
-  'Chemical':                         { border: '#1565C0', bg: '#E3F2FD' },
-  'Geological':                       { border: '#8B1A1A', bg: '#F3E5E5' },
-  'Environmental':                    { border: '#388E3C', bg: '#E8F5E9' },
-  'Extraterrestrial':                 { border: '#9C27B0', bg: '#F3E5F5' },
-  'Societal':                         { border: '#7B1FA2', bg: '#EDE7F6' },
+  'Biological':                       { border: '#1A1A1A', bg: '#E8E8E8' },
+  'Meteorological and Hydrological':  { border: '#3AAE2B', bg: '#E8F5E5' },
+  'Technological':                    { border: '#B8860B', bg: '#F5EDD6' },
+  'Chemical':                         { border: '#5B92C5', bg: '#ECF2F9' },
+  'Geological':                       { border: '#C21E2C', bg: '#F9E6E8' },
+  'Environmental':                    { border: '#1B355F', bg: '#E3E8EF' },
+  'Extraterrestrial':                 { border: '#E8792B', bg: '#FCF0E8' },
+  'Societal':                         { border: '#8B3FA0', bg: '#F2E8F6' },
 };
 
 const DEFAULT_COLOR = { border: '#9E9E9E', bg: '#F5F5F5' };
