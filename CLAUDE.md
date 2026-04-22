@@ -64,6 +64,7 @@ Both paths call the same `fetchHip()` + `render()` pipeline below.
 
 - `SAME_TYPE_BANNER_THRESHOLD = 4` (render.js)
 - `STUB = 22`, `CONDUIT_MARGIN = 24`, `ARROW_SIZE = 7` (connectors.js)
+- `ROW_Y_TOLERANCE = 20` (row-utils.js) — Y-position tolerance in px for grouping boxes into the same connector row
 
 ## Data Source
 
@@ -86,7 +87,7 @@ GitHub Pages via GitHub Actions (`.github/workflows/deploy.yml`) on push to `mai
 
 ## Known Gaps
 
-Documented in **SUGGESTIONS.md**: code range notation, comma grouping for sub-types, "and others" truncation, large causes groups spanning full width, row-grouping threshold tied to CSS gap, accessible connector colors, responsive behavior at narrow widths. Good test cases: Fire (TL0305), Glacial Lake (MH0607), Flash Flooding (MH0603), Building Collapse (TL0201).
+Documented in **SUGGESTIONS.md**. Two items remain open: `"and others"` truncation (needs threshold design decision) and large causes groups spanning full width (needs verification against MH0607). Good test cases: Fire (TL0305), Glacial Lake (MH0607), Flash Flooding (MH0603), Building Collapse (TL0201).
 
 ## License & attribution
 

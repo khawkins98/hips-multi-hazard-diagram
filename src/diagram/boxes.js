@@ -69,9 +69,11 @@ export function formatItemsHTML(items) {
       const collapsed = collapseToRanges(codes);
       const codeHTML = collapsed
         .map(token => {
-          // Range token: "START-END" — link both endpoints, hyphen is plain text
-          if (token.includes('-')) {
-            const dashIdx = token.indexOf('-', 2); // skip prefix letters
+          // Range token: "START-END" — link both endpoints, hyphen is plain text.
+          // collapseToRanges only emits ranges for well-formed codes (2-letter prefix
+          // + digits), so dashIdx will always be >= 2. Guard anyway for safety.
+          const dashIdx = token.indexOf('-', 2);
+          if (dashIdx > 0) {
             const start = token.slice(0, dashIdx);
             const end = token.slice(dashIdx + 1);
             return `${codeLink(start)}-${codeLink(end)}`;

@@ -21,6 +21,6 @@ export default defineConfig(isEmbed ? {
   },
   test: {
     environment: 'node',
-    include: ['src/__tests__/**/*.test.js'],
+    include: ['src/**/*.test.js'],
   },
 });
