@@ -1,18 +1,15 @@
 import { str, toArray } from './jsonld.js';
-import { getHazardType } from './hazard-types.js';
+import { Hazard } from '../domain/hazard.js';
+import { HazardType } from '../domain/hazard-type.js';
+import { CausalGraph } from '../domain/causal-graph.js';
 
 const API_BASE = 'https://www.preventionweb.net/api/terms/hips/';
 
 /**
- * Fetch a single HIP and return structured causal data.
+ * Fetch a single HIP and return a typed CausalGraph read model.
+ *
  * @param {string} code - HIP code, e.g. "TL0305"
- * @returns {Promise<{
- *   name: string,
- *   code: string,
- *   type: { name: string, color: { border: string, bg: string } },
- *   causedBy: Map<string, Array<{ name: string, code: string }>>,
- *   causes: Map<string, Array<{ name: string, code: string }>>
- * }>}
+ * @returns {Promise<CausalGraph>}
  */
 export async function fetchHip(code) {
   const res = await fetch(`${API_BASE}${encodeURIComponent(code)}`);
@@ -29,18 +26,20 @@ export async function fetchHip(code) {
   const concept = graph[0];
   const name = str(concept['skos:prefLabel']);
   const identifier = str(concept['dct:identifier']);
-  const type = getHazardType(identifier);
+  const type = HazardType.fromCode(identifier);
+  const hazard = new Hazard({ code: identifier, name, type });
 
   const causedBy = groupByType(toArray(concept['xkos:causedBy']));
   const causes = groupByType(toArray(concept['xkos:causes']));
 
-  return { name, code: identifier, type, causedBy, causes };
+  return new CausalGraph({ hazard, causedBy, causes });
 }
 
 /**
  * Extract name/code from a causedBy/causes entry and group by hazard type.
+ *
  * @param {Array} entries - JSON-LD entries from xkos:causedBy or xkos:causes
- * @returns {Map<string, Array<{ name: string, code: string }>>}
+ * @returns {Map<string, { type: HazardType, hazards: Hazard[] }>}
  */
 function groupByType(entries) {
   const groups = new Map();
@@ -50,17 +49,16 @@ function groupByType(entries) {
     const name = str(entry['skos:prefLabel']);
     if (!code) continue;
 
-    const { name: typeName } = getHazardType(code);
-
-    if (!groups.has(typeName)) {
-      groups.set(typeName, []);
+    const type = HazardType.fromCode(code);
+    if (!groups.has(type.name)) {
+      groups.set(type.name, { type, hazards: [] });
     }
-    groups.get(typeName).push({ name, code });
+    groups.get(type.name).hazards.push(new Hazard({ code, name, type }));
   }
 
-  // Sort items within each group by code ascending
-  for (const items of groups.values()) {
-    items.sort((a, b) => a.code.localeCompare(b.code));
+  // Sort hazards within each group by code ascending
+  for (const { hazards } of groups.values()) {
+    hazards.sort((a, b) => a.code.raw.localeCompare(b.code.raw));
   }
 
   return groups;

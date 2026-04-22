@@ -5,6 +5,8 @@
  * range-collapsed structures. No DOM access — safe to unit-test in Node.
  */
 
+import { HazardCode } from '../domain/hazard-code.js';
+
 /**
  * Group hazard items by name so same-concept codes can be merged.
  *
@@ -45,37 +47,26 @@ export function collapseToRanges(codes, minRun = 3) {
   // Deduplicate while preserving order
   const unique = [...new Set(codes)];
 
-  // Parse into { prefix, num, original }
-  const CODE_RE = /^([A-Z]{2})(\d+)$/;
-  const parsed = unique.map(c => {
-    const m = c.match(CODE_RE);
-    if (!m) return { prefix: null, num: NaN, original: c };
-    return { prefix: m[1], num: parseInt(m[2], 10), original: c };
-  });
+  // Parse each code into a HazardCode value object
+  const parsed = unique.map(c => new HazardCode(String(c)));
 
-  // Sort: well-formed codes by prefix then number; malformed codes last
+  // Sort: valid codes by prefix then number; malformed codes last
   parsed.sort((a, b) => {
-    const aValid = a.prefix !== null;
-    const bValid = b.prefix !== null;
-    if (!aValid && !bValid) return 0;
-    if (!aValid) return 1;
-    if (!bValid) return -1;
+    if (!a.isValid && !b.isValid) return 0;
+    if (!a.isValid) return 1;
+    if (!b.isValid) return -1;
     const prefixCmp = a.prefix.localeCompare(b.prefix);
     if (prefixCmp !== 0) return prefixCmp;
-    return a.num - b.num;
+    return a.numericPart - b.numericPart;
   });
 
-  // Build consecutive runs (same prefix, nums differ by 1 each step)
+  // Build consecutive runs using HazardCode.isConsecutiveTo()
   const runs = [];
   let run = [parsed[0]];
   for (let i = 1; i < parsed.length; i++) {
     const prev = run[run.length - 1];
     const curr = parsed[i];
-    if (
-      curr.prefix !== null &&
-      curr.prefix === prev.prefix &&
-      curr.num === prev.num + 1
-    ) {
+    if (prev.isConsecutiveTo(curr)) {
       run.push(curr);
     } else {
       runs.push(run);
@@ -87,8 +78,8 @@ export function collapseToRanges(codes, minRun = 3) {
   // Emit each run as a range string or individual codes
   return runs.flatMap(r => {
     if (r.length >= minRun) {
-      return [`${r[0].original}-${r[r.length - 1].original}`];
+      return [`${r[0].raw}-${r[r.length - 1].raw}`];
     }
-    return r.map(p => p.original);
+    return r.map(p => p.raw);
   });
 }

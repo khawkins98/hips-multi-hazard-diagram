@@ -31,9 +31,9 @@ const SAME_TYPE_BANNER_THRESHOLD = 4;
  * the browser has laid out the grid.
  *
  * @param {HTMLElement} container - Element to render into (typically #app)
- * @param {{ name: string, code: string, type: { name: string }, causedBy: Map, causes: Map }} data
+ * @param {import('../domain/causal-graph.js').CausalGraph} graph
  */
-export function render(container, data) {
+export function render(container, graph) {
   container.innerHTML = '';
 
   const wrapper = document.createElement('div');
@@ -45,7 +45,7 @@ export function render(container, data) {
   const causesEls = [];
 
   // === CAUSED BY SECTION (top) ===
-  if (data.causedBy.size > 0) {
+  if (graph.causedBy.size > 0) {
     const section = document.createElement('div');
     section.className = 'section-causedby';
 
@@ -54,8 +54,9 @@ export function render(container, data) {
     label.textContent = 'CAUSED BY';
     section.appendChild(label);
 
-    const sameTypeName = data.type.name;
-    const sameTypeItems = data.causedBy.get(sameTypeName);
+    const sameTypeName = graph.hazard.type.name;
+    const sameTypeGroup = graph.causedBy.get(sameTypeName);
+    const sameTypeItems = sameTypeGroup?.hazards ?? null;
     const hasBanner = sameTypeItems && sameTypeItems.length >= SAME_TYPE_BANNER_THRESHOLD;
 
     // Banner row: full-width box for same-type items when there are many
@@ -63,7 +64,7 @@ export function render(container, data) {
       const bannerRow = document.createElement('div');
       bannerRow.className = 'group-row';
       bannerRow.style.gridTemplateColumns = '1fr';
-      const bannerBox = createBoxElement(sameTypeName, sameTypeItems);
+      const bannerBox = createBoxElement(sameTypeName, sameTypeItems, sameTypeGroup.type.color);
       bannerRow.appendChild(bannerBox);
       section.appendChild(bannerRow);
       causedByEls.push(bannerBox);
@@ -71,9 +72,9 @@ export function render(container, data) {
 
     // Remaining type groups (excluding banner if present)
     const otherGroups = [];
-    for (const [typeName, items] of data.causedBy) {
+    for (const [typeName, { type, hazards }] of graph.causedBy) {
       if (hasBanner && typeName === sameTypeName) continue;
-      otherGroups.push({ typeName, items });
+      otherGroups.push({ typeName, type, items: hazards });
     }
 
     if (otherGroups.length > 0) {
@@ -84,7 +85,7 @@ export function render(container, data) {
         rowEl.style.gridTemplateColumns = getGridTemplate(row);
 
         for (const group of row) {
-          const boxEl = createBoxElement(group.typeName, group.items);
+          const boxEl = createBoxElement(group.typeName, group.items, group.type.color);
           rowEl.appendChild(boxEl);
           causedByEls.push(boxEl);
         }
@@ -100,12 +101,12 @@ export function render(container, data) {
   centerWrapper.className = 'center-node-wrapper';
   const centerNode = document.createElement('div');
   centerNode.className = 'center-node';
-  centerNode.textContent = `${data.name} (${data.code})`;
+  centerNode.textContent = `${graph.hazard.name} (${graph.hazard.code})`;
   centerWrapper.appendChild(centerNode);
   wrapper.appendChild(centerWrapper);
 
   // === CAUSES SECTION (bottom) ===
-  if (data.causes.size > 0) {
+  if (graph.causes.size > 0) {
     const section = document.createElement('div');
     section.className = 'section-causes';
 
@@ -115,8 +116,8 @@ export function render(container, data) {
     section.appendChild(label);
 
     const causesGroups = [];
-    for (const [typeName, items] of data.causes) {
-      causesGroups.push({ typeName, items });
+    for (const [typeName, { type, hazards }] of graph.causes) {
+      causesGroups.push({ typeName, type, items: hazards });
     }
 
     const rows = splitIntoRows(causesGroups);
@@ -126,7 +127,7 @@ export function render(container, data) {
       rowEl.style.gridTemplateColumns = getGridTemplate(row);
 
       for (const group of row) {
-        const boxEl = createBoxElement(group.typeName, group.items);
+        const boxEl = createBoxElement(group.typeName, group.items, group.type.color);
         rowEl.appendChild(boxEl);
         causesEls.push(boxEl);
       }

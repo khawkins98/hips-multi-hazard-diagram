@@ -29,10 +29,10 @@ async function init() {
   showLoading(code);
 
   try {
-    const data = await fetchHip(code);
-    document.title = `${data.name} (${data.code}) — HIPs Causal Diagram`;
+    const graph = await fetchHip(code);
+    document.title = `${graph.hazard.name} (${graph.hazard.code}) — HIPs Causal Diagram`;
     app.innerHTML = '';
-    render(app, data);
+    render(app, graph);
   } catch (err) {
     showError(
       `Failed to load hazard "${code}"`,

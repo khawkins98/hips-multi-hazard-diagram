@@ -6,14 +6,15 @@
  * are handled entirely by CSS — no manual measurement needed.
  */
 
-import { TYPE_COLORS } from '../data/hazard-types.js';
 import { groupItemsByName, collapseToRanges } from './format-items.js';
 
-/** Fallback when a hazard type has no entry in TYPE_COLORS. */
+/** Fallback when a hazard type has no color info. */
 const DEFAULT_COLOR = { border: '#9E9E9E', bg: '#F5F5F5' };
 
 /**
  * Create an HTML element for a type-group box.
+ *
+ * Accepts either domain Hazard objects or legacy plain {name, code} objects.
  *
  * Structure:
  *   div.type-box  (--type-border, --type-bg set inline)
@@ -21,11 +22,12 @@ const DEFAULT_COLOR = { border: '#9E9E9E', bg: '#F5F5F5' };
  *     div.type-box__content  "Name (CODE); Same Name (CODE1, CODE2); Ranged (A01-A03); ..."
  *
  * @param {string} typeName - Hazard type display name, e.g. "Technological"
- * @param {Array<{ name: string, code: string }>} items - Hazards in this group, sorted by code
+ * @param {Array<import('../domain/hazard.js').Hazard|{ name: string, code: string }>} items
+ * @param {{ border: string, bg: string }} [colorOverride] - Optional color override (used by render.js)
  * @returns {HTMLDivElement}
  */
-export function createBoxElement(typeName, items) {
-  const color = TYPE_COLORS[typeName] || DEFAULT_COLOR;
+export function createBoxElement(typeName, items, colorOverride) {
+  const color = colorOverride || DEFAULT_COLOR;
 
   const box = document.createElement('div');
   box.className = 'type-box';
@@ -48,6 +50,7 @@ export function createBoxElement(typeName, items) {
 /**
  * Format hazard items as semicolon-separated HTML.
  *
+ * Accepts domain Hazard objects or plain {name, code} objects.
  * Items sharing the same name are merged into a single entry:
  *   - Comma-separated links when codes are non-sequential or fewer than 3 in a run.
  *   - Range notation (START-END) when 3+ codes are numerically consecutive and
@@ -58,11 +61,17 @@ export function createBoxElement(typeName, items) {
  *   Grouped: `Land Transportation Accidents (<a ...>TL0404</a>, <a ...>TL0405</a>)`
  *   Range:   `Air Pollution (<a ...>EN0101</a>-<a ...>EN0103</a>)`
  *
- * @param {Array<{ name: string, code: string }>} items
+ * @param {Array<import('../domain/hazard.js').Hazard|{ name: string, code: string }>} items
  * @returns {string} HTML string
  */
 export function formatItemsHTML(items) {
-  const groups = groupItemsByName(items);
+  // Normalize: accept both Hazard domain objects and plain {name, code: string} objects.
+  // HazardCode.toString() returns raw; strings pass through String() unchanged.
+  const plain = items.map(item => ({
+    name: item.name,
+    code: String(item.code),
+  }));
+  const groups = groupItemsByName(plain);
 
   return groups
     .map(({ name, codes }) => {
