@@ -157,4 +157,4 @@ The **hazard content** rendered by the viewer is fetched live from the Preventio
 
 If you deploy this viewer, note in particular that CC BY-NC 4.0 restricts the HIP content to **non-commercial use** and requires attribution. Commercial licensing requests for the content should be directed to UNDRR at <https://www.undrr.org/contact-us>. See [NOTICE](NOTICE) for the full third-party attribution.
 
-This project is not affiliated with, endorsed by, or sponsored by UNDRR, ISC, or PreventionWeb.
+This is a personal project developed by an UNDRR staff member in an individual capacity — it is not an official UNDRR, ISC, or PreventionWeb product, and is not affiliated with, endorsed by, or sponsored by any of them.
