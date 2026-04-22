@@ -2,6 +2,8 @@
 
 Visualizes "what causes this hazard" and "what it causes" for a single [UNDRR Hazard Information Profiles (HIPs)](https://www.preventionweb.net/drr-glossary/hips) hazard, grouped by hazard type. Designed for embedding on other sites.
 
+Browse the full HIPs glossary at [preventionweb.net/drr-glossary/hips](https://www.preventionweb.net/drr-glossary/hips).
+
 This project is a focused companion to [hips-multihazard](https://github.com/khawkins98/hips-multihazard), which renders the full interactive graph of all 281 HIPs. Where that project is the atlas, this is the single-page map.
 
 ## Usage
@@ -135,10 +137,24 @@ These values are defined in `src/data/hazard-types.js`.
 
 Data comes from the PreventionWeb API at `https://www.preventionweb.net/api/terms/hips/{code}`. The response is JSON-LD with `xkos:causedBy` and `xkos:causes` arrays. Hazard type is derived from the 2-letter identifier prefix (BI, MH, TL, CH, GH, EN, ET, SO).
 
+The full HIPs glossary is published at [preventionweb.net/drr-glossary/hips](https://www.preventionweb.net/drr-glossary/hips).
+
 ## Deployment
 
 GitHub Pages via GitHub Actions on push to `main`. Vite base path is set to `/hips-multi-hazard-diagram/`.
 
-## License
+## Contributing
 
-TBD
+See [CONTRIBUTING.md](CONTRIBUTING.md) for development setup, scope, and PR guidelines.
+
+## License & attribution
+
+The **viewer source code** in this repository is licensed under the [Apache License, Version 2.0](LICENSE).
+
+The **hazard content** rendered by the viewer is fetched live from the PreventionWeb API and is separately licensed. It comes from the UNDRR-ISC Hazard Information Profiles (HIPs), made available by UNDRR and ISC under [Creative Commons Attribution-NonCommercial 4.0 International (CC BY-NC 4.0)](https://creativecommons.org/licenses/by-nc/4.0/):
+
+> United Nations Office for Disaster Risk Reduction (UNDRR), & International Science Council (ISC). (2025). *UNDRR-ISC Hazard Information Profiles – 2025 Update*. <https://doi.org/10.24948/2025.05>
+
+If you deploy this viewer, note in particular that CC BY-NC 4.0 restricts the HIP content to **non-commercial use** and requires attribution. Commercial licensing requests for the content should be directed to UNDRR at <https://www.undrr.org/contact-us>. See [NOTICE](NOTICE) for the full third-party attribution.
+
+This project is not affiliated with, endorsed by, or sponsored by UNDRR, ISC, or PreventionWeb.

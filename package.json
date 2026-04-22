@@ -1,8 +1,19 @@
 {
   "name": "hips-multi-hazard-diagram",
   "version": "0.1.0",
+  "description": "Single-hazard causal diagram viewer for the UNDRR-ISC Hazard Information Profiles (HIPs).",
   "type": "module",
   "private": true,
+  "license": "Apache-2.0",
+  "author": "Ken Hawkins",
+  "homepage": "https://khawkins98.github.io/hips-multi-hazard-diagram/",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/khawkins98/hips-multi-hazard-diagram.git"
+  },
+  "bugs": {
+    "url": "https://github.com/khawkins98/hips-multi-hazard-diagram/issues"
+  },
   "scripts": {
     "dev": "vite",
     "build": "vite build",

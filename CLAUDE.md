@@ -13,7 +13,8 @@ Spiritual successor to [hips-multihazard](https://github.com/khawkins98/hips-mul
 ```bash
 npm install          # install dependencies
 npm run dev          # start Vite dev server
-npm run build        # production build to dist/
+npm run build        # production build to dist/ (standalone page)
+npm run build:embed  # build embed script to dist/hips-diagram.js
 npm run preview      # preview production build locally
 ```
 
@@ -29,15 +30,23 @@ No test framework or linter is configured yet.
 
 ## Architecture
 
+### Entry points
+
+There are two build targets that share the data + rendering modules:
+
+- `src/main.js` — standalone page (default `npm run build`). Reads `?hip={CODE}` from URL, shows loading/error states, renders into `#app`. Pulls global styles from `src/styles.css`.
+- `src/embed.js` — embed script (`npm run build:embed` → `dist/hips-diagram.js`). Auto-discovers `data-hips-diagram="{CODE}"` containers on the host page, injects scoped styles from `src/embed-styles.css`, and renders one diagram per container.
+
+Both paths call the same `fetchHip()` + `render()` pipeline below.
+
 ### Data flow
 
-1. `src/main.js` — reads `?hip={CODE}` from URL, orchestrates fetch → render → error handling
-2. `src/data/fetch-hip.js` — `fetchHip(code)` fetches from PreventionWeb API, parses JSON-LD, returns `{ name, code, type, causedBy: Map<typeName, items[]>, causes: Map<typeName, items[]> }`
-3. `src/data/hazard-types.js` — maps 2-letter code prefixes to type names and colors (border + bg hex)
-4. `src/data/jsonld.js` — JSON-LD helpers: `str()`, `refId()`, `toArray()`
-5. `src/diagram/render.js` — builds DOM structure: causedBy (top), center node, causes (bottom). CSS Grid columns weighted by item count. Same-type banner when >= `SAME_TYPE_BANNER_THRESHOLD` (4)
-6. `src/diagram/boxes.js` — creates type-group box elements with colored borders, semicolon-separated hazard entries, links to `https://undrr.org/hip/{CODE}`
-7. `src/diagram/connectors.js` — SVG connector overlay using `getBoundingClientRect()`. Bus-pattern routing (stubs → bus → conduit → trunk). Redraws on resize via `ResizeObserver`
+1. `src/data/fetch-hip.js` — `fetchHip(code)` fetches from PreventionWeb API, parses JSON-LD, returns `{ name, code, type, causedBy: Map<typeName, items[]>, causes: Map<typeName, items[]> }`
+2. `src/data/hazard-types.js` — maps 2-letter code prefixes to type names and colors (border + bg hex)
+3. `src/data/jsonld.js` — JSON-LD helpers: `str()`, `refId()`, `toArray()`
+4. `src/diagram/render.js` — builds DOM structure: causedBy (top), center node, causes (bottom). CSS Grid columns weighted by item count. Same-type banner when >= `SAME_TYPE_BANNER_THRESHOLD` (4)
+5. `src/diagram/boxes.js` — creates type-group box elements with colored borders, semicolon-separated hazard entries, links to `https://undrr.org/hip/{CODE}`
+6. `src/diagram/connectors.js` — SVG connector overlay using `getBoundingClientRect()`. Bus-pattern routing (stubs → bus → conduit → trunk). Redraws on resize via `ResizeObserver`
 
 ### Layout rules
 
@@ -73,4 +82,13 @@ GitHub Pages via GitHub Actions (`.github/workflows/deploy.yml`) on push to `mai
 
 ## Known Gaps
 
-Documented in **SUGGESTIONS.md**: code range notation, comma grouping for sub-types, "and others" truncation, connector contrast, center node overflow. Good test cases: Fire (TL0305), Glacial Lake (MH0607), Flash Flooding (MH0603), Building Collapse (TL0201).
+Documented in **SUGGESTIONS.md**: code range notation, comma grouping for sub-types, "and others" truncation, large causes groups spanning full width, row-grouping threshold tied to CSS gap, accessible connector colors, responsive behavior at narrow widths. Good test cases: Fire (TL0305), Glacial Lake (MH0607), Flash Flooding (MH0603), Building Collapse (TL0201).
+
+## License & attribution
+
+Two licenses in play — keep them straight when making changes:
+
+- **Viewer source code** (this repo): Apache License 2.0 (see `LICENSE`).
+- **HIP content** (fetched live from PreventionWeb): CC BY-NC 4.0, © UNDRR + ISC (see `NOTICE`). This is **non-commercial** and requires attribution; do not bundle, cache, or redistribute the HIP dataset from this repo. Attribution and citation are handled via the NOTICE file and README — do not remove them. No UNDRR logo, no implication of UNDRR/ISC endorsement.
+
+Practical implication: features that snapshot HIP data into the repo, ship it as JSON fixtures, or strip attribution are out of scope. Live fetch is the intended architecture.
