@@ -16,9 +16,11 @@ npm run dev          # start Vite dev server
 npm run build        # production build to dist/ (standalone page)
 npm run build:embed  # build embed script to dist/hips-diagram.js
 npm run preview      # preview production build locally
+npm test             # run unit tests (Vitest)
+npm run test:watch   # run tests in watch mode
 ```
 
-No test framework or linter is configured yet.
+No linter is configured yet. Test framework: **Vitest** (`npm test`).
 
 ## Tech Stack
 
@@ -45,8 +47,10 @@ Both paths call the same `fetchHip()` + `render()` pipeline below.
 2. `src/data/hazard-types.js` — maps 2-letter code prefixes to type names and colors (border + bg hex)
 3. `src/data/jsonld.js` — JSON-LD helpers: `str()`, `refId()`, `toArray()`
 4. `src/diagram/render.js` — builds DOM structure: causedBy (top), center node, causes (bottom). CSS Grid columns weighted by item count. Same-type banner when >= `SAME_TYPE_BANNER_THRESHOLD` (4)
-5. `src/diagram/boxes.js` — creates type-group box elements with colored borders, semicolon-separated hazard entries, links to `https://undrr.org/hip/{CODE}`
-6. `src/diagram/connectors.js` — SVG connector overlay using `getBoundingClientRect()`. Bus-pattern routing (stubs → bus → conduit → trunk). Redraws on resize via `ResizeObserver`
+5. `src/diagram/boxes.js` — creates type-group box elements; uses `format-items.js` for comma-grouped and range-notated hazard entries, links to `https://undrr.org/hip/{CODE}`
+6. `src/diagram/format-items.js` — pure helpers: `groupItemsByName()` (merge same-name items), `collapseToRanges()` (range notation for 3+ sequential codes)
+7. `src/diagram/connectors.js` — SVG connector overlay using `getBoundingClientRect()`. Bus-pattern routing (stubs → bus → conduit → trunk). Redraws on resize via `ResizeObserver`
+8. `src/diagram/row-utils.js` — `groupIntoRows()` clusters boxes by Y position; imported by connectors
 
 ### Layout rules
 
