@@ -19,4 +19,8 @@ export default defineConfig(isEmbed ? {
     outDir: 'dist',
     assetsInlineLimit: 0,
   },
+  test: {
+    environment: 'node',
+    include: ['src/**/*.test.js'],
+  },
 });

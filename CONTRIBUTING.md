@@ -25,9 +25,25 @@ npm run dev           # Vite dev server
 npm run build         # production build -> dist/
 npm run build:embed   # embed script -> dist/hips-diagram.js
 npm run preview       # preview production build locally
+npm test              # run unit tests (Vitest)
+npm run test:watch    # run tests in watch mode while developing
 ```
 
-There is no test framework or linter configured. Before opening a PR, please verify your change against a few hazards with different shapes:
+### Test-driven development
+
+This project uses [Vitest](https://vitest.dev/) for unit tests. Pure logic — item formatting, grouping, range notation, row calculations — lives in testable modules (`src/diagram/format-items.js`, `src/diagram/row-utils.js`) separate from DOM-dependent rendering code.
+
+When making a change that touches pure-logic modules (item formatting, grouping, row calculations), the preferred workflow is:
+
+1. **Write a failing test** that describes the expected behaviour.
+2. **Implement** until the test passes.
+3. **Run `npm test`** and confirm all tests are green before opening a PR.
+
+CI will run `npm test`, `npm run build`, and `npm run build:embed` on every PR automatically — a failing test will block merging.
+
+Tests that cover rendering behaviour (DOM output) belong in `src/__tests__/`; add `// @vitest-environment jsdom` as the first line of the file to opt into a browser-like environment. Pure logic tests need no annotation.
+
+Before opening a PR, also verify your change visually against a few hazards with different shapes:
 
 - `?hip=TL0305` — Fire (mixed causedBy + causes)
 - `?hip=MH0607` — Glacial Lake Outburst Flooding (large causes group)
@@ -43,8 +59,11 @@ See `CLAUDE.md` and `README.md` for the data flow and layout rules. Key files:
 - `src/main.js` — URL routing and orchestration
 - `src/data/fetch-hip.js` — API fetch + JSON-LD parsing
 - `src/data/hazard-types.js` — code-prefix → type + color mapping
-- `src/diagram/render.js` — DOM structure and row-splitting rules
+- `src/diagram/render.js` — DOM structure; splits type-groups into display rows by item count
+- `src/diagram/boxes.js` — type-group box creation
+- `src/diagram/format-items.js` — pure item grouping and range-notation logic (tested)
 - `src/diagram/connectors.js` — SVG bus-pattern connector overlay
+- `src/diagram/row-utils.js` — box row-grouping logic (tested)
 
 `SUGGESTIONS.md` tracks known gaps against the original PRD — good starting points if you're looking for something to work on.
 

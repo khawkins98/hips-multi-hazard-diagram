@@ -180,3 +180,32 @@ body {
     stroke: #666 !important;
   }
 }
+
+/* Responsive: narrow viewports */
+@media (max-width: 540px) {
+  #app {
+    padding: 8px;
+  }
+
+  .type-box__header {
+    font-size: 11px;
+  }
+
+  .type-box__content {
+    font-size: 10px;
+  }
+
+  .center-node {
+    font-size: 13px;
+    padding: 10px 16px;
+  }
+
+  .center-node-wrapper {
+    margin: 32px 0;
+  }
+
+  .group-row {
+    gap: 8px;
+    margin-bottom: 24px;
+  }
+}

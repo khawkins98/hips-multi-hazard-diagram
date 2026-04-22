@@ -26,9 +26,11 @@
  * changes size (e.g. browser resize, font load shift).
  */
 
+import { groupIntoRows } from './row-utils.js';
+
 /** Distance (px) from a box edge to its row's horizontal bus line. */
 const STUB = 22;
-const STROKE_COLOR = '#555';
+const STROKE_COLOR = '#333';
 const STROKE_WIDTH = 1.5;
 /** Side length of the downward-pointing arrowhead triangle. */
 const ARROW_SIZE = 7;
@@ -184,34 +186,6 @@ function drawSectionConnectors(g, rows, centerRect, cx, direction) {
     const centerBottom = centerRect.y + centerRect.height;
     drawLine(g, cx, centerBottom, cx, busData[0].busY);
   }
-}
-
-/**
- * Group box rects into rows by similar Y position (within 20px tolerance).
- * Returns rows sorted top-to-bottom, each row sorted left-to-right.
- *
- * @param {Array<{x,y,width,height}>} boxes
- * @returns {Array<Array<{x,y,width,height}>>}
- */
-function groupIntoRows(boxes) {
-  if (!boxes.length) return [];
-
-  const sorted = [...boxes].sort((a, b) => a.y - b.y);
-  const rows = [];
-  let currentRow = [sorted[0]];
-
-  for (let i = 1; i < sorted.length; i++) {
-    const prev = currentRow[0];
-    const curr = sorted[i];
-    if (Math.abs(curr.y - prev.y) < 20) {
-      currentRow.push(curr);
-    } else {
-      rows.push(currentRow.sort((a, b) => a.x - b.x));
-      currentRow = [curr];
-    }
-  }
-  rows.push(currentRow.sort((a, b) => a.x - b.x));
-  return rows;
 }
 
 /** Create an SVG <g> element with the given class and append it to parent. */

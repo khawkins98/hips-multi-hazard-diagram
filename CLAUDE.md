@@ -16,9 +16,11 @@ npm run dev          # start Vite dev server
 npm run build        # production build to dist/ (standalone page)
 npm run build:embed  # build embed script to dist/hips-diagram.js
 npm run preview      # preview production build locally
+npm test             # run unit tests (Vitest)
+npm run test:watch   # run tests in watch mode
 ```
 
-No test framework or linter is configured yet.
+No linter is configured yet. Test framework: **Vitest** (`npm test`).
 
 ## Tech Stack
 
@@ -45,8 +47,10 @@ Both paths call the same `fetchHip()` + `render()` pipeline below.
 2. `src/data/hazard-types.js` — maps 2-letter code prefixes to type names and colors (border + bg hex)
 3. `src/data/jsonld.js` — JSON-LD helpers: `str()`, `refId()`, `toArray()`
 4. `src/diagram/render.js` — builds DOM structure: causedBy (top), center node, causes (bottom). CSS Grid columns weighted by item count. Same-type banner when >= `SAME_TYPE_BANNER_THRESHOLD` (4)
-5. `src/diagram/boxes.js` — creates type-group box elements with colored borders, semicolon-separated hazard entries, links to `https://undrr.org/hip/{CODE}`
-6. `src/diagram/connectors.js` — SVG connector overlay using `getBoundingClientRect()`. Bus-pattern routing (stubs → bus → conduit → trunk). Redraws on resize via `ResizeObserver`
+5. `src/diagram/boxes.js` — creates type-group box elements; uses `format-items.js` for comma-grouped and range-notated hazard entries, links to `https://undrr.org/hip/{CODE}`
+6. `src/diagram/format-items.js` — pure helpers: `groupItemsByName()` (merge same-name items), `collapseToRanges()` (range notation for 3+ sequential codes)
+7. `src/diagram/connectors.js` — SVG connector overlay using `getBoundingClientRect()`. Bus-pattern routing (stubs → bus → conduit → trunk). Redraws on resize via `ResizeObserver`
+8. `src/diagram/row-utils.js` — `groupIntoRows()` clusters boxes by Y position; imported by connectors
 
 ### Layout rules
 
@@ -60,6 +64,7 @@ Both paths call the same `fetchHip()` + `render()` pipeline below.
 
 - `SAME_TYPE_BANNER_THRESHOLD = 4` (render.js)
 - `STUB = 22`, `CONDUIT_MARGIN = 24`, `ARROW_SIZE = 7` (connectors.js)
+- `ROW_Y_TOLERANCE = 20` (row-utils.js) — Y-position tolerance in px for grouping boxes into the same connector row
 
 ## Data Source
 
@@ -82,7 +87,7 @@ GitHub Pages via GitHub Actions (`.github/workflows/deploy.yml`) on push to `mai
 
 ## Known Gaps
 
-Documented in **SUGGESTIONS.md**: code range notation, comma grouping for sub-types, "and others" truncation, large causes groups spanning full width, row-grouping threshold tied to CSS gap, accessible connector colors, responsive behavior at narrow widths. Good test cases: Fire (TL0305), Glacial Lake (MH0607), Flash Flooding (MH0603), Building Collapse (TL0201).
+Documented in **SUGGESTIONS.md**. Two items remain open: `"and others"` truncation (needs threshold design decision) and large causes groups spanning full width (needs verification against MH0607). Good test cases: Fire (TL0305), Glacial Lake (MH0607), Flash Flooding (MH0603), Building Collapse (TL0201).
 
 ## License & attribution
 
