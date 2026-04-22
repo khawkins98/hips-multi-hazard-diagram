@@ -18,7 +18,7 @@ const DEFAULT_COLOR = { border: '#9E9E9E', bg: '#F5F5F5' };
  * Structure:
  *   div.type-box  (--type-border, --type-bg set inline)
  *     div.type-box__header   "Technological"
- *     div.type-box__content  "Name (CODE); Name (CODE); ..."
+ *     div.type-box__content  "Name (CODE); Same Name (CODE1, CODE2); Ranged (A01-A03); ..."
  *
  * @param {string} typeName - Hazard type display name, e.g. "Technological"
  * @param {Array<{ name: string, code: string }>} items - Hazards in this group, sorted by code
