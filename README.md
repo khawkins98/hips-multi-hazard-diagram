@@ -143,6 +143,14 @@ The full HIPs glossary is published at [preventionweb.net/drr-glossary/hips](htt
 
 GitHub Pages via GitHub Actions on push to `main`. Vite base path is set to `/hips-multi-hazard-diagram/`.
 
+Built versions are also redistributed via the **UNDRR Asset Library** at:
+
+```
+https://assets.undrr.org/static/projects/hips/single-hazard-diagram/
+```
+
+Each version is published as an immutable directory (e.g. `v0.1.0/`) with stable asset filenames. For UNDRR-related use cases, the asset library URL is the preferred production reference. See the [asset library README](https://assets.undrr.org/static/projects/hips/single-hazard-diagram/) for available versions and usage examples.
+
 ## Contributing
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for development setup, scope, and PR guidelines.
