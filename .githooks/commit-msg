@@ -1,0 +1,13 @@
+#!/bin/sh
+# Check the commit subject (first line) against the project convention.
+# Enabled by `npm install` (the "prepare" script sets core.hooksPath).
+# Bypass for a one-off with `git commit --no-verify`.
+
+subject=$(head -n 1 "$1")
+
+# Leave git-generated subjects alone: merges, reverts and autosquash markers.
+case "$subject" in
+  "Merge "*|"Revert \""*|"fixup! "*|"squash! "*|"amend! "*) exit 0 ;;
+esac
+
+exec sh "$(git rev-parse --show-toplevel)/scripts/check-commit-subject.sh" "$subject" "Commit subject"
