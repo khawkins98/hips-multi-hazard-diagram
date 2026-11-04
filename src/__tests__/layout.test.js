@@ -26,6 +26,12 @@ describe('splitIntoRows', () => {
     expect(sizes(splitIntoRows(groups(9, 1, 1, 1, 1)))).toEqual([3, 2]);
   });
 
+  it('never puts more than 4 groups in a row, even with an unknown 9th type', () => {
+    const rows = splitIntoRows(groups(5, 4, 3, 3, 2, 2, 1, 1, 1));
+    expect(Math.max(...rows.map(r => r.length))).toBeLessThanOrEqual(MAX_SINGLE_ROW);
+    expect(rows.flat()).toHaveLength(9);
+  });
+
   it('still balances item counts within the cap', () => {
     const [a, b] = splitIntoRows(groups(5, 5, 4, 4, 1, 1));
     expect(Math.abs(total(a) - total(b))).toBeLessThanOrEqual(2);

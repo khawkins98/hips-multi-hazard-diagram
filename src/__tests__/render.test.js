@@ -67,6 +67,13 @@ describe('render', () => {
     expect(causes.classList.contains('section--multibox')).toBe(true);
   });
 
+  it('passes each box its item-count weight for the narrow wrapping layout', () => {
+    render(container, hip({ causes: { Chemical: 16, Geological: 1 } }));
+    const weights = [...container.querySelectorAll('.type-box')]
+      .map(b => b.style.getPropertyValue('--hips-weight'));
+    expect(weights).toEqual(['16', '1']);
+  });
+
   it('passes an accessible header colour to each box', () => {
     render(container, hip({ causes: { 'Meteorological and Hydrological': 1 } }));
     const box = container.querySelector('.type-box');

@@ -7,10 +7,11 @@
 /**
  * Y-position tolerance (px) for considering two boxes to be in the same row.
  *
- * CSS grid aligns all items in a row to the same top edge, so same-row boxes
- * should have near-identical Y values. The tolerance comfortably covers
- * sub-pixel rendering differences while staying well below the 32px
- * inter-row margin used in .group-row.
+ * Boxes in the same grid row (or the same flex line, in the narrow wrapping
+ * layout) share a top edge, so same-row boxes have near-identical Y values.
+ * The tolerance covers sub-pixel rendering differences. Separate rows differ
+ * by at least a full box height plus the gap between rows (24–32px), so they
+ * are never merged.
  */
 export const ROW_Y_TOLERANCE = 20;
 

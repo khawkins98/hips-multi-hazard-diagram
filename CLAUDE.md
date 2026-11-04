@@ -60,7 +60,7 @@ Both paths call the same `fetchHip()` + `render()` pipeline below, and share one
 - **Causes (bottom):** All types equal (no banner); large groups may span full width
 - **Connectors:** Converge → center → diverge (not point-to-point). Arrow markers on causes stubs only
 - **Row splitting:** <= 4 groups → 1 row; > 4 → two rows of at most ceil(N/2) groups, balanced by item count
-- **Narrow containers:** container queries on `.hips-diagram` (not viewport media queries). <= 640px: boxes wrap (`auto-fit`, min 150px). `contain-intrinsic-inline-size` stops the diagram collapsing in shrink-to-fit host layouts
+- **Narrow containers:** container queries on `.diagram-wrapper` (not viewport media queries). <= 640px: rows become flex-wrap, boxes `flex: var(--hips-weight) 1 0` with min 150px, so widths stay weighted by item count. `.hips-diagram` is a one-column grid (`minmax(0, 860px)`) so shrink-to-fit host layouts still get full width. Don't put auto margins on `.diagram-wrapper`: as a size container it would shrink to 0
 
 ### Key constants
 

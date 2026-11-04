@@ -49,6 +49,9 @@ async function initDiagram(container) {
   if (container.hasAttribute('data-hips-diagram-ready')) return;
   container.setAttribute('data-hips-diagram-ready', '');
 
+  // Clear the error panel left by an earlier failed attempt
+  for (const old of container.querySelectorAll(':scope > .hips-diagram')) old.remove();
+
   // Create scoped wrapper
   const wrapper = document.createElement('div');
   wrapper.className = 'hips-diagram';
@@ -67,6 +70,8 @@ async function initDiagram(container) {
     wrapper.innerHTML = '';
     render(wrapper, data);
   } catch (err) {
+    // Let a later include of the script retry this container
+    container.removeAttribute('data-hips-diagram-ready');
     wrapper.innerHTML = `
       <div class="error-state">
         <h2>Failed to load hazard "${sanitize(code)}"</h2>

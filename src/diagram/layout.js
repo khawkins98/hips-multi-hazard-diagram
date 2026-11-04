@@ -11,28 +11,27 @@ export const MAX_SINGLE_ROW = 4;
 const MIN_BOX_WIDTH = 140;
 
 /**
- * Split type groups into 1 or 2 rows for a balanced layout.
+ * Split type groups into balanced rows.
  *
  * - N <= MAX_SINGLE_ROW groups: all in a single row.
- * - More: two rows, each holding at most ceil(N / 2) groups. Groups are
- *   taken largest first and placed in the row with fewer items that still
- *   has room. The cap stops one large group from pushing every other group
- *   into a row too wide to fit (seen on Building Collapse, TL0201).
+ * - More: ceil(N / MAX_SINGLE_ROW) rows (2 for the 8 hazard types; 3 if an
+ *   unknown 9th type appears), each holding at most ceil(N / rows) groups.
+ *   Groups are taken largest first and placed in the row with fewer items
+ *   that still has room. The cap stops one large group from pushing every
+ *   other group into a row too wide to fit (seen on Building Collapse, TL0201).
  *
- * With at most 8 hazard types, a row never holds more than 4 boxes, so its
- * minimum width (4 × 140px + gaps) fits the wide layout.
+ * A row never holds more than MAX_SINGLE_ROW boxes, so its minimum width
+ * (4 × 140px + gaps) fits the wide layout.
  *
  * @param {Array<{ typeName: string, items: Array }>} groups
- * @returns {Array<Array<{ typeName: string, items: Array }>>} 1 or 2 rows
+ * @returns {Array<Array<{ typeName: string, items: Array }>>}
  */
 export function splitIntoRows(groups) {
   if (groups.length <= MAX_SINGLE_ROW) return [groups];
 
-  const cap = Math.ceil(groups.length / 2);
-  const rows = [
-    { groups: [], count: 0 },
-    { groups: [], count: 0 },
-  ];
+  const rowCount = Math.ceil(groups.length / MAX_SINGLE_ROW);
+  const cap = Math.ceil(groups.length / rowCount);
+  const rows = Array.from({ length: rowCount }, () => ({ groups: [], count: 0 }));
 
   const sorted = [...groups].sort((a, b) => b.items.length - a.items.length);
   for (const g of sorted) {

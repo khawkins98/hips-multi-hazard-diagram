@@ -35,7 +35,7 @@ The script auto-discovers all `data-hips-diagram` containers and renders a diagr
 
 CSS is scoped to the diagram container, so it won't affect styles on your page. Including the script more than once is harmless: each container is rendered once and styles are injected once.
 
-The diagram fills the width of its container and reflows to fit it, so it also works in a narrow sidebar column. Give the container a width from the page layout (a normal content area does this already). If the container sizes to fit its contents, such as a flex item with no width, an inline-block or a table cell, the diagram falls back to a narrow 320px layout rather than collapsing. Set `width: 100%` (or `flex: 1`) on the container to use the full width.
+The diagram fills the width of its container, up to 860px, and reflows to fit it, so it also works in a narrow sidebar column. In layouts that size the container to its contents (a centred flex or grid item, an inline-block, a table cell) it still asks for its full 860px width, and it can shrink on small screens without overflowing.
 
 #### Theming with Mangrove
 
@@ -49,7 +49,7 @@ On pages that load [UNDRR Mangrove](https://mangrove.undrr.org/), the diagram pi
 | Links | `--mg-color-interactive` | `rgb(21 101 192)` |
 | Keyboard focus ring | `--mg-color-focus-ring`, `--mg-focus-ring-width`, `-offset`, `-radius` | `rgb(134 98 0)`, 2px |
 
-No configuration is needed, and the diagram looks the same as before on pages without Mangrove. Hazard-type colors are not themed: they come from the UNDRR-ISC classification wheel.
+No configuration is needed. On pages without Mangrove the fallbacks apply. Hazard-type colors are not themed: they come from the UNDRR-ISC classification wheel. Hazard links sit on the type tints, so their color is the host link color mixed with 15% black, which keeps every Mangrove brand at 4.5:1 or better.
 
 #### Iframe fallback
 
@@ -110,7 +110,7 @@ When a section has multiple rows, a vertical conduit runs along the right side (
 
 More than 4 type groups split into two rows of at most half the groups each, balanced by item count.
 
-The layout responds to the width of its container (CSS container queries), not the browser window. Below 640px, boxes wrap into as many columns as fit, each at least 150px wide.
+The layout responds to the width of the diagram area (CSS container queries on `.diagram-wrapper`), not the browser window. When the diagram area is 640px or narrower (a container up to about 672px, after padding), boxes wrap onto new lines, each at least 150px wide, with widths still weighted by item count.
 
 ### File structure
 

@@ -31,7 +31,7 @@ npm run test:watch    # run tests in watch mode while developing
 
 ### Test-driven development
 
-This project uses [Vitest](https://vitest.dev/) for unit tests. Pure logic — item formatting, grouping, range notation, row calculations — lives in testable modules (`src/diagram/format-items.js`, `src/diagram/row-utils.js`) separate from DOM-dependent rendering code.
+This project uses [Vitest](https://vitest.dev/) for unit tests. Pure logic — item formatting, grouping, range notation, row calculations — lives in testable modules (`src/diagram/format-items.js`, `src/diagram/row-utils.js`, `src/diagram/layout.js`) separate from DOM-dependent rendering code.
 
 When making a change that touches pure-logic modules (item formatting, grouping, row calculations), the preferred workflow is:
 
@@ -64,6 +64,8 @@ See `CLAUDE.md` and `README.md` for the data flow and layout rules. Key files:
 - `src/diagram/format-items.js` — pure item grouping and range-notation logic (tested)
 - `src/diagram/connectors.js` — SVG bus-pattern connector overlay
 - `src/diagram/row-utils.js` — box row-grouping logic (tested)
+- `src/diagram/layout.js` — row splitting and weighted grid columns (tested)
+- `src/diagram-styles.css` — all diagram styles, scoped under `.hips-diagram`; shared by the standalone page and the embed
 
 `SUGGESTIONS.md` tracks known gaps against the original PRD — good starting points if you're looking for something to work on.
 

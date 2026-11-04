@@ -8,7 +8,7 @@ describe('computeConduitX', () => {
     expect(computeConduitX([box(0, 100), box(120, 200)], 1000)).toBe(320 + CONDUIT_MARGIN);
   });
 
-  it('never leaves the wrapper, so it is not clipped in tight embeds', () => {
+  it('is clamped inside the wrapper as a safety net (CSS normally reserves a lane)', () => {
     // Boxes fill the full 400px wrapper width
     expect(computeConduitX([box(0, 400)], 400)).toBeLessThanOrEqual(400);
   });

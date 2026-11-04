@@ -13,7 +13,7 @@ import { groupItemsByName, collapseToRanges } from './format-items.js';
  * Create an HTML element for a type-group box.
  *
  * Structure:
- *   div.type-box  (--type-border, --type-bg, --type-text set inline)
+ *   div.type-box  (--type-border, --type-bg, --type-text, --hips-weight set inline)
  *     div.type-box__header   "Technological"
  *     div.type-box__content  "Name (CODE); Same Name (CODE1, CODE2); Ranged (A01-A03); ..."
  *
@@ -29,6 +29,8 @@ export function createBoxElement(typeName, items) {
   box.style.setProperty('--type-border', color.border);
   box.style.setProperty('--type-bg', color.bg);
   box.style.setProperty('--type-text', color.text);
+  // Item count, so the narrow wrapping layout can size boxes by content
+  box.style.setProperty('--hips-weight', String(Math.max(1, items.length)));
 
   const header = document.createElement('div');
   header.className = 'type-box__header';

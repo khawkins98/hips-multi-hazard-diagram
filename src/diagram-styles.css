@@ -21,13 +21,13 @@
      Must be wider than CONDUIT_MARGIN in connectors.js. */
   --hips-conduit-lane: 32px;
 
-  container: hips-diagram / inline-size;
-  /* Safeguard: as a size container, the diagram no longer takes its width
-     from its content. In shrink-to-fit layouts (a flex row with no width, an
-     inline-block, a table cell) it would collapse to zero; this gives it a
-     narrow but readable width there instead. 288px + padding = 320px, the
-     narrowest common phone. Normal block layouts are unaffected. */
-  contain-intrinsic-inline-size: 288px;
+  /* One grid column that is 0–860px wide. Its preferred width is 860px and
+     its minimum is 0, so in shrink-to-fit host layouts (centred flex or
+     grid, inline-block, table cell) the diagram still asks for full width,
+     yet can shrink on a phone without overflowing. */
+  display: grid;
+  grid-template-columns: minmax(0, 860px);
+  justify-content: center;
   font-family: var(--mg-font-family-text, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif);
   color: var(--hips-color-text);
   line-height: 1.4;
@@ -43,11 +43,15 @@
   box-sizing: border-box;
 }
 
-/* Diagram wrapper — positions the SVG connector overlay */
+/* Diagram wrapper — positions the SVG connector overlay. It is also the size
+   container for the narrow-layout queries below. It sits inside the grid
+   above, so containment can't collapse the diagram's intrinsic width.
+   No auto margins or max-width here: the grid track sets the width, and an
+   auto margin would shrink this contained element to zero. */
 .hips-diagram .diagram-wrapper {
+  container: hips-diagram / inline-size;
   position: relative;
-  max-width: 860px;
-  margin: 0 auto;
+  min-width: 0;
 }
 
 /* Section labels */
@@ -132,6 +136,13 @@
   text-decoration: underline;
 }
 
+/* Hazard links sit on the type tints. Mixing in 15% black keeps every
+   Mangrove brand's link colour at 4.5:1 or more on all tints (IRP's own
+   colour is 3.8:1). Checked in src/__tests__/hazard-types.test.js. */
+.hips-diagram .hazard-link {
+  color: color-mix(in srgb, var(--hips-color-link) 85%, black);
+}
+
 /* Hover thickens the underline instead of changing colour: Mangrove's
    hover colours drop below 4.5:1 on some type tints. */
 .hips-diagram .hazard-link:hover,
@@ -209,11 +220,19 @@
 /* Narrow containers. Container queries (not viewport media queries) so an
    embed in a narrow column reflows even on a wide screen. */
 @container hips-diagram (max-width: 640px) {
-  /* Let boxes wrap instead of overflowing; extra row gap leaves room for the
-     connector bus between wrapped rows. */
+  /* Let boxes wrap instead of overflowing. Flex rather than grid so each box
+     keeps its item-count weight (--hips-weight, set by boxes.js): a 16-item
+     group gets more width than a 1-item group, not the same. The extra row
+     gap leaves room for the connector bus between wrapped rows. */
   .hips-diagram .group-row {
-    grid-template-columns: repeat(auto-fit, minmax(min(100%, 150px), 1fr));
+    display: flex;
+    flex-wrap: wrap;
     row-gap: 32px;
+  }
+
+  .hips-diagram .type-box {
+    flex: var(--hips-weight, 1) 1 0;
+    min-width: min(100%, 150px);
   }
 
   /* Any section with 2+ boxes may wrap, and so may need the conduit */
