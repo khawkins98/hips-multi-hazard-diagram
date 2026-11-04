@@ -33,7 +33,23 @@ The script auto-discovers all `data-hips-diagram` containers and renders a diagr
 <script src="https://khawkins98.github.io/hips-multi-hazard-diagram/hips-diagram.js"></script>
 ```
 
-CSS is scoped to the diagram container, so it won't affect styles on your page.
+CSS is scoped to the diagram container, so it won't affect styles on your page. Including the script more than once is harmless: each container is rendered once and styles are injected once.
+
+The diagram fills the width of its container, up to 860px, and reflows to fit it, so it also works in a narrow sidebar column. In layouts that size the container to its contents (a centred flex or grid item, an inline-block, a table cell) it still asks for its full 860px width, and it can shrink on small screens without overflowing.
+
+#### Theming with Mangrove
+
+On pages that load [UNDRR Mangrove](https://mangrove.undrr.org/), the diagram picks up the host theme automatically:
+
+| Diagram element | Mangrove token | Fallback |
+|---|---|---|
+| Font | `--mg-font-family-text` | system font stack |
+| Text | `--mg-color-text` | `rgb(51 51 51)` |
+| Labels, loading text | `--mg-color-neutral-600` | `rgb(77 77 77)` |
+| Links | `--mg-color-interactive` | `rgb(21 101 192)` |
+| Keyboard focus ring | `--mg-color-focus-ring`, `--mg-focus-ring-width`, `-offset`, `-radius` | `rgb(134 98 0)`, 2px |
+
+No configuration is needed. On pages without Mangrove the fallbacks apply. Hazard-type colors are not themed: they come from the UNDRR-ISC classification wheel. Hazard links sit on the type tints, so their color is the host link color mixed with 15% black, which keeps every Mangrove brand at 4.5:1 or better.
 
 #### Iframe fallback
 
@@ -90,7 +106,11 @@ Boxes are HTML divs styled with CSS custom properties for type colors. CSS grid 
 
 Connectors are an SVG overlay positioned absolutely over the wrapper. A `ResizeObserver` redraws them on resize.
 
-When a section has multiple rows, a vertical conduit runs along the right side (outside all boxes) so lines never cross through a box.
+When a section has multiple rows, a vertical conduit runs along the right side (outside all boxes) so lines never cross through a box. The section reserves a lane for it, so the conduit stays inside the diagram.
+
+More than 4 type groups split into two rows of at most half the groups each, balanced by item count.
+
+The layout responds to the width of the diagram area (CSS container queries on `.diagram-wrapper`), not the browser window. When the diagram area is 640px or narrower (a container up to about 672px, after padding), boxes wrap onto new lines, each at least 150px wide, with widths still weighted by item count.
 
 ### File structure
 
@@ -98,16 +118,19 @@ When a section has multiple rows, a vertical conduit runs along the right side (
 src/
   main.js                  # Entry point: URL routing, loading/error states
   embed.js                 # Embed entry point: auto-init, CSS injection, fetch + render
-  styles.css               # All styles: grid layout, type-box colors, connectors
-  embed-styles.css         # Scoped styles for embed (no global resets)
+  diagram-styles.css       # Diagram styles scoped under .hips-diagram (shared by page and embed)
+  styles.css               # Standalone page: page-level resets + imports diagram-styles.css
   data/
     fetch-hip.js           # API fetch + JSON-LD parsing + groupByType
     hazard-types.js        # Prefix-to-type mapping, color palette
     jsonld.js              # JSON-LD value extraction helpers (str, refId, toArray)
   diagram/
     render.js              # HTML structure: sections, grid rows, center node
+    layout.js              # Row splitting and weighted grid columns (pure, tested)
     boxes.js               # Type-group box creation with clickable hazard links
+    format-items.js        # Name grouping and code range notation (pure, tested)
     connectors.js          # SVG overlay: bus-pattern lines, arrowheads, resize
+    row-utils.js           # Groups box positions into connector rows (pure, tested)
 ```
 
 ### Tech stack
@@ -116,20 +139,20 @@ Vite for build tooling, vanilla JS with no runtime dependencies, CSS grid for bo
 
 ## Hazard type color palette
 
-Colors are sourced from the UNDRR-ISC Hazard Definition & Classification Review Technical Report wheel diagram (page 5). Each hazard type has a primary color (used for borders and headers) and a light tint (used for box backgrounds).
+Colors are sourced from the UNDRR-ISC Hazard Definition & Classification Review Technical Report wheel diagram (page 5). Each hazard type has a primary color (used for borders), a light tint (used for box backgrounds) and a header text color. Where the primary color is too light to read on the tint, the header uses a darker shade of the same hue that meets WCAG AA (4.5:1). A unit test checks every pair.
 
-| Type | Prefix | Primary (border) | Background (tint) | Visual |
-|------|--------|------------------|--------------------|--------|
-| Meteorological & Hydrological | MH | `#3AAE2B` (green) | `#E8F5E5` | Bright green |
-| Biological | BI | `#1A1A1A` (black) | `#E8E8E8` | Black |
-| Chemical | CH | `#5B92C5` (blue) | `#ECF2F9` | Medium blue |
-| Extraterrestrial | ET | `#E8792B` (orange) | `#FCF0E8` | Orange |
-| Societal | SO | `#8B3FA0` (purple) | `#F2E8F6` | Purple / magenta |
-| Technological | TL | `#B8860B` (dark gold) | `#F5EDD6` | Dark gold / mustard |
-| Geological | GH | `#C21E2C` (red) | `#F9E6E8` | Deep red / crimson |
-| Environmental | EN | `#1B355F` (navy) | `#E3E8EF` | Dark navy blue |
+| Type | Prefix | Primary (border) | Background (tint) | Header text | Visual |
+|------|--------|------------------|--------------------|-------------|--------|
+| Meteorological & Hydrological | MH | `#3AAE2B` (green) | `#E8F5E5` | `#297B1E` | Bright green |
+| Biological | BI | `#1A1A1A` (black) | `#E8E8E8` | `#1A1A1A` | Black |
+| Chemical | CH | `#5B92C5` (blue) | `#ECF2F9` | `#3970A2` | Medium blue |
+| Extraterrestrial | ET | `#E8792B` (orange) | `#FCF0E8` | `#AE5313` | Orange |
+| Societal | SO | `#8B3FA0` (purple) | `#F2E8F6` | `#8B3FA0` | Purple / magenta |
+| Technological | TL | `#B8860B` (dark gold) | `#F5EDD6` | `#886308` | Dark gold / mustard |
+| Geological | GH | `#C21E2C` (red) | `#F9E6E8` | `#C21E2C` | Deep red / crimson |
+| Environmental | EN | `#1B355F` (navy) | `#E3E8EF` | `#1B355F` | Dark navy blue |
 
-Fallback for unknown types: border `#9E9E9E`, background `#F5F5F5` (gray).
+Fallback for unknown types: border `#9E9E9E`, background `#F5F5F5`, header `#6F6F6F` (gray).
 
 These values are defined in `src/data/hazard-types.js`.
 
@@ -146,10 +169,10 @@ GitHub Pages via GitHub Actions on push to `main`. Vite base path is set to `/hi
 Built versions are also redistributed via the **UNDRR Asset Library** at:
 
 ```
-https://assets.undrr.org/static/projects/hips/single-hazard-diagram/
+https://assets.undrr.org/projects/hips/single-hazard-diagram/
 ```
 
-Each version is published as an immutable directory (e.g. `v0.1.0/`) with stable asset filenames. For UNDRR-related use cases, the asset library URL is the preferred production reference. See the [asset library README](https://assets.undrr.org/static/projects/hips/single-hazard-diagram/) for available versions and usage examples.
+Each version is published as an immutable directory (e.g. `v0.1.0/`) with stable asset filenames. For UNDRR-related use cases, the asset library URL is the preferred production reference. See the [asset library README](https://assets.undrr.org/projects/hips/single-hazard-diagram/README.md) for available versions and usage examples.
 
 ## Contributing
 

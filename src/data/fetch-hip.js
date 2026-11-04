@@ -9,7 +9,7 @@ const API_BASE = 'https://www.preventionweb.net/api/terms/hips/';
  * @returns {Promise<{
  *   name: string,
  *   code: string,
- *   type: { name: string, color: { border: string, bg: string } },
+ *   type: { name: string, color: { border: string, bg: string, text: string } },
  *   causedBy: Map<string, Array<{ name: string, code: string }>>,
  *   causes: Map<string, Array<{ name: string, code: string }>>
  * }>}

@@ -6,17 +6,14 @@
  * are handled entirely by CSS — no manual measurement needed.
  */
 
-import { TYPE_COLORS } from '../data/hazard-types.js';
+import { TYPE_COLORS, DEFAULT_COLOR } from '../data/hazard-types.js';
 import { groupItemsByName, collapseToRanges } from './format-items.js';
-
-/** Fallback when a hazard type has no entry in TYPE_COLORS. */
-const DEFAULT_COLOR = { border: '#9E9E9E', bg: '#F5F5F5' };
 
 /**
  * Create an HTML element for a type-group box.
  *
  * Structure:
- *   div.type-box  (--type-border, --type-bg set inline)
+ *   div.type-box  (--type-border, --type-bg, --type-text, --hips-weight set inline)
  *     div.type-box__header   "Technological"
  *     div.type-box__content  "Name (CODE); Same Name (CODE1, CODE2); Ranged (A01-A03); ..."
  *
@@ -31,6 +28,9 @@ export function createBoxElement(typeName, items) {
   box.className = 'type-box';
   box.style.setProperty('--type-border', color.border);
   box.style.setProperty('--type-bg', color.bg);
+  box.style.setProperty('--type-text', color.text);
+  // Item count, so the narrow wrapping layout can size boxes by content
+  box.style.setProperty('--hips-weight', String(Math.max(1, items.length)));
 
   const header = document.createElement('div');
   header.className = 'type-box__header';

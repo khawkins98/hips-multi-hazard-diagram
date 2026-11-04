@@ -12,17 +12,18 @@
 
 import { fetchHip } from './data/fetch-hip.js';
 import { render } from './diagram/render.js';
-import embedStyles from './embed-styles.css?inline';
+import embedStyles from './diagram-styles.css?inline';
 
-let stylesInjected = false;
-
-/** Inject scoped CSS into <head> once. */
+/**
+ * Inject scoped CSS into <head> once per page. Checked through the DOM
+ * rather than a module flag, so including the script twice is harmless.
+ */
 function injectStyles() {
-  if (stylesInjected) return;
+  if (document.querySelector('style[data-hips-diagram-styles]')) return;
   const style = document.createElement('style');
+  style.setAttribute('data-hips-diagram-styles', '');
   style.textContent = embedStyles;
   document.head.appendChild(style);
-  stylesInjected = true;
 }
 
 /**
@@ -44,6 +45,13 @@ async function initDiagram(container) {
   const code = container.getAttribute('data-hips-diagram');
   if (!code) return;
 
+  // Skip containers already claimed (e.g. the script was included twice)
+  if (container.hasAttribute('data-hips-diagram-ready')) return;
+  container.setAttribute('data-hips-diagram-ready', '');
+
+  // Clear the error panel left by an earlier failed attempt
+  for (const old of container.querySelectorAll(':scope > .hips-diagram')) old.remove();
+
   // Create scoped wrapper
   const wrapper = document.createElement('div');
   wrapper.className = 'hips-diagram';
@@ -62,6 +70,8 @@ async function initDiagram(container) {
     wrapper.innerHTML = '';
     render(wrapper, data);
   } catch (err) {
+    // Let a later include of the script retry this container
+    container.removeAttribute('data-hips-diagram-ready');
     wrapper.innerHTML = `
       <div class="error-state">
         <h2>Failed to load hazard "${sanitize(code)}"</h2>

@@ -34,8 +34,12 @@ const STROKE_COLOR = '#333';
 const STROKE_WIDTH = 1.5;
 /** Side length of the downward-pointing arrowhead triangle. */
 const ARROW_SIZE = 7;
-/** Horizontal gap (px) between the rightmost box edge and the vertical conduit. */
-const CONDUIT_MARGIN = 24;
+/**
+ * Horizontal gap (px) between the rightmost box edge and the vertical conduit.
+ * Must stay below the CSS conduit lane width (--hips-conduit-lane) so the
+ * conduit is drawn inside the diagram rather than clipped at its edge.
+ */
+export const CONDUIT_MARGIN = 24;
 const SVG_NS = 'http://www.w3.org/2000/svg';
 
 /**
@@ -80,7 +84,7 @@ export function drawConnectors(wrapper, svgEl, causedByEls, centerEl, causesEls)
     const boxes = causedByEls.map(rel);
     const rows = groupIntoRows(boxes);
     rows.reverse(); // process bottom-to-top (closest to center first)
-    drawSectionConnectors(g, rows, centerRect, cx, 'up');
+    drawSectionConnectors(g, rows, centerRect, cx, 'up', wrapperRect.width);
   }
 
   if (causesEls.length > 0) {
@@ -88,7 +92,7 @@ export function drawConnectors(wrapper, svgEl, causedByEls, centerEl, causesEls)
     const boxes = causesEls.map(rel);
     const rows = groupIntoRows(boxes);
     // already top-to-bottom (closest to center first)
-    drawSectionConnectors(g, rows, centerRect, cx, 'down');
+    drawSectionConnectors(g, rows, centerRect, cx, 'down', wrapperRect.width);
   }
 
   // Attach a ResizeObserver (once) to redraw when the wrapper resizes
@@ -115,8 +119,9 @@ export function drawConnectors(wrapper, svgEl, causedByEls, centerEl, causesEls)
  * @param {{x,y,width,height}} centerRect - Center node rect relative to wrapper
  * @param {number} cx - Horizontal center X coordinate
  * @param {'up'|'down'} direction - 'up' for causedBy (boxes above center), 'down' for causes
+ * @param {number} wrapperWidth - Width of the diagram wrapper, used to keep the conduit inside it
  */
-function drawSectionConnectors(g, rows, centerRect, cx, direction) {
+function drawSectionConnectors(g, rows, centerRect, cx, direction, wrapperWidth) {
   const allBoxes = rows.flat();
 
   // Compute bus Y for each row, placing it in the gap between this
@@ -142,10 +147,7 @@ function drawSectionConnectors(g, rows, centerRect, cx, direction) {
   });
 
   const needsConduit = busData.length > 1;
-  // Place conduit to the right of every box so no line crosses a box
-  const conduitX = needsConduit
-    ? Math.max(...allBoxes.map(b => b.x + b.width)) + CONDUIT_MARGIN
-    : 0;
+  const conduitX = needsConduit ? computeConduitX(allBoxes, wrapperWidth) : 0;
 
   // Draw each row's horizontal bus and vertical stubs to boxes
   for (let i = 0; i < busData.length; i++) {
@@ -186,6 +188,22 @@ function drawSectionConnectors(g, rows, centerRect, cx, direction) {
     const centerBottom = centerRect.y + centerRect.height;
     drawLine(g, cx, centerBottom, cx, busData[0].busY);
   }
+}
+
+/**
+ * X position of the vertical conduit for a multi-row section.
+ *
+ * Sits CONDUIT_MARGIN to the right of every box so no line crosses a box.
+ * CSS reserves a lane for it; the clamp is a safety net so the line is never
+ * drawn past the wrapper edge, where an embed's host page would clip it.
+ *
+ * @param {Array<{x: number, width: number}>} boxes - All box rects in the section
+ * @param {number} wrapperWidth
+ * @returns {number}
+ */
+export function computeConduitX(boxes, wrapperWidth) {
+  const rightmost = Math.max(...boxes.map(b => b.x + b.width));
+  return Math.min(rightmost + CONDUIT_MARGIN, wrapperWidth - STROKE_WIDTH);
 }
 
 /** Create an SVG <g> element with the given class and append it to parent. */
