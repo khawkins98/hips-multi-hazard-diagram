@@ -11,6 +11,8 @@ import { render } from './diagram/render.js';
 import './styles.css';
 
 const app = document.getElementById('app');
+// Same scoping class the embed uses, so both share diagram-styles.css
+app.classList.add('hips-diagram');
 
 async function init() {
   const params = new URLSearchParams(window.location.search);

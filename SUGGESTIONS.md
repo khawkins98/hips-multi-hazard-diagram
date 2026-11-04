@@ -17,7 +17,10 @@ The 20px magic number in the connector row-grouping logic is now a named constan
 Connector `STROKE_COLOR` in `connectors.js` darkened from `#555` to `#333`.
 
 ### Responsive behavior at narrow widths ✓
-Media query at `max-width: 540px` added to both `styles.css` and `embed-styles.css`, reducing font sizes, padding, and grid gaps on narrow viewports.
+Container queries in `diagram-styles.css` reflow the layout to the width of the diagram's container, so embeds in narrow columns work too. Below 640px boxes wrap instead of overflowing; below 540px fonts and spacing tighten. (Replaces the earlier viewport media query, which shrank fonts but let rows overflow at phone widths.)
+
+### Rows too wide to fit ✓
+Row splitting caps each row at half the groups. Previously one large group could take a row alone and push 5+ boxes into the other, overflowing the diagram (Building Collapse, TL0201).
 
 ## Still open
 

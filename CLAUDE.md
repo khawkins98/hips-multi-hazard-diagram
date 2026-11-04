@@ -36,21 +36,22 @@ No linter is configured yet. Test framework: **Vitest** (`npm test`).
 
 There are two build targets that share the data + rendering modules:
 
-- `src/main.js` — standalone page (default `npm run build`). Reads `?hip={CODE}` from URL, shows loading/error states, renders into `#app`. Pulls global styles from `src/styles.css`.
-- `src/embed.js` — embed script (`npm run build:embed` → `dist/hips-diagram.js`). Auto-discovers `data-hips-diagram="{CODE}"` containers on the host page, injects scoped styles from `src/embed-styles.css`, and renders one diagram per container.
+- `src/main.js` — standalone page (default `npm run build`). Reads `?hip={CODE}` from URL, shows loading/error states, renders into `#app` (which gets the `.hips-diagram` class). `src/styles.css` adds page-level resets and imports `src/diagram-styles.css`.
+- `src/embed.js` — embed script (`npm run build:embed` → `dist/hips-diagram.js`). Auto-discovers `data-hips-diagram="{CODE}"` containers on the host page, injects `src/diagram-styles.css` once, and renders one diagram per container (guarded so including the script twice is harmless).
 
-Both paths call the same `fetchHip()` + `render()` pipeline below.
+Both paths call the same `fetchHip()` + `render()` pipeline below, and share one stylesheet: `src/diagram-styles.css`, scoped under `.hips-diagram`. It reads Mangrove tokens (`--mg-font-family-text`, `--mg-color-text`, `--mg-color-interactive`, `--mg-color-focus-ring`, …) with fallbacks, so the diagram matches Mangrove host pages. Mangrove colour tokens are sRGB channels: always wrap in `rgb()`.
 
 ### Data flow
 
 1. `src/data/fetch-hip.js` — `fetchHip(code)` fetches from PreventionWeb API, parses JSON-LD, returns `{ name, code, type, causedBy: Map<typeName, items[]>, causes: Map<typeName, items[]> }`
-2. `src/data/hazard-types.js` — maps 2-letter code prefixes to type names and colors (border + bg hex)
+2. `src/data/hazard-types.js` — maps 2-letter code prefixes to type names and colors (border, bg, and header `text` that meets WCAG AA on bg; tested)
 3. `src/data/jsonld.js` — JSON-LD helpers: `str()`, `refId()`, `toArray()`
-4. `src/diagram/render.js` — builds DOM structure: causedBy (top), center node, causes (bottom). CSS Grid columns weighted by item count. Same-type banner when >= `SAME_TYPE_BANNER_THRESHOLD` (4)
-5. `src/diagram/boxes.js` — creates type-group box elements; uses `format-items.js` for comma-grouped and range-notated hazard entries, links to `https://undrr.org/hip/{CODE}`
+4. `src/diagram/render.js` — builds DOM structure: causedBy (top), center node, causes (bottom). Grid columns are passed as the `--hips-cols` custom property. Same-type banner when >= `SAME_TYPE_BANNER_THRESHOLD` (4). Flags sections `.section--multirow` / `.section--multibox` so CSS reserves the conduit lane
+5. `src/diagram/boxes.js` — creates type-group box elements; uses `format-items.js` for comma-grouped and range-notated hazard entries, links to `https://www.undrr.org/terms/hips/{CODE}`
 6. `src/diagram/format-items.js` — pure helpers: `groupItemsByName()` (merge same-name items), `collapseToRanges()` (range notation for 3+ sequential codes)
 7. `src/diagram/connectors.js` — SVG connector overlay using `getBoundingClientRect()`. Bus-pattern routing (stubs → bus → conduit → trunk). Redraws on resize via `ResizeObserver`
 8. `src/diagram/row-utils.js` — `groupIntoRows()` clusters boxes by Y position; imported by connectors
+9. `src/diagram/layout.js` — pure helpers: `splitIntoRows()` and `getGridTemplate()`
 
 ### Layout rules
 
@@ -58,12 +59,14 @@ Both paths call the same `fetchHip()` + `render()` pipeline below.
 - **Center:** "Name (CODE)" in a neutral box
 - **Causes (bottom):** All types equal (no banner); large groups may span full width
 - **Connectors:** Converge → center → diverge (not point-to-point). Arrow markers on causes stubs only
-- **Row splitting:** <= 4 groups → 1 row; > 4 → balanced split by item count
+- **Row splitting:** <= 4 groups → 1 row; > 4 → two rows of at most ceil(N/2) groups, balanced by item count
+- **Narrow containers:** container queries on `.hips-diagram` (not viewport media queries). <= 640px: boxes wrap (`auto-fit`, min 150px). `contain-intrinsic-inline-size` stops the diagram collapsing in shrink-to-fit host layouts
 
 ### Key constants
 
 - `SAME_TYPE_BANNER_THRESHOLD = 4` (render.js)
-- `STUB = 22`, `CONDUIT_MARGIN = 24`, `ARROW_SIZE = 7` (connectors.js)
+- `STUB = 22`, `CONDUIT_MARGIN = 24`, `ARROW_SIZE = 7` (connectors.js). `CONDUIT_MARGIN` must stay below `--hips-conduit-lane` (32px, diagram-styles.css)
+- `MAX_SINGLE_ROW = 4` (layout.js)
 - `ROW_Y_TOLERANCE = 20` (row-utils.js) — Y-position tolerance in px for grouping boxes into the same connector row
 
 ## Data Source

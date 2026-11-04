@@ -10,12 +10,21 @@
  *     svg.connector-overlay    (orthogonal bus-pattern lines drawn after layout)
  *
  * Box layout uses CSS grid with weighted `fr` columns so boxes size
- * proportionally to their item count. Row splitting is deterministic:
- * <= 4 groups → 1 row, > 4 → balanced split into 2 rows.
+ * proportionally to their item count. Row splitting lives in layout.js:
+ * <= 4 groups → 1 row, > 4 → balanced split into 2 rows of at most half each.
+ *
+ * Column templates are passed to CSS as the `--hips-cols` custom property
+ * rather than set as an inline `grid-template-columns`, so the stylesheet
+ * can switch to a wrapping layout when the diagram's container is narrow.
+ *
+ * Sections are flagged for the connector conduit lane (see styles):
+ *   .section--multirow  rendered as 2+ rows, so it needs a conduit at any width
+ *   .section--multibox  2+ boxes, so it needs a conduit once boxes wrap
  */
 
 import { createBoxElement } from './boxes.js';
 import { drawConnectors } from './connectors.js';
+import { splitIntoRows, getGridTemplate } from './layout.js';
 
 /**
  * When the center HIP has >= this many causedBy items of its own type,
@@ -51,7 +60,7 @@ export function render(container, data) {
 
     const label = document.createElement('div');
     label.className = 'section-label';
-    label.textContent = 'CAUSED BY';
+    label.textContent = 'Caused by';
     section.appendChild(label);
 
     const sameTypeName = data.type.name;
@@ -62,7 +71,7 @@ export function render(container, data) {
     if (hasBanner) {
       const bannerRow = document.createElement('div');
       bannerRow.className = 'group-row';
-      bannerRow.style.gridTemplateColumns = '1fr';
+      bannerRow.style.setProperty('--hips-cols', '1fr');
       const bannerBox = createBoxElement(sameTypeName, sameTypeItems);
       bannerRow.appendChild(bannerBox);
       section.appendChild(bannerRow);
@@ -76,12 +85,14 @@ export function render(container, data) {
       otherGroups.push({ typeName, items });
     }
 
+    let rowCount = hasBanner ? 1 : 0;
     if (otherGroups.length > 0) {
       const rows = splitIntoRows(otherGroups);
+      rowCount += rows.length;
       for (const row of rows) {
         const rowEl = document.createElement('div');
         rowEl.className = 'group-row';
-        rowEl.style.gridTemplateColumns = getGridTemplate(row);
+        rowEl.style.setProperty('--hips-cols', getGridTemplate(row));
 
         for (const group of row) {
           const boxEl = createBoxElement(group.typeName, group.items);
@@ -92,6 +103,7 @@ export function render(container, data) {
       }
     }
 
+    flagConduitLane(section, rowCount, causedByEls.length);
     wrapper.appendChild(section);
   }
 
@@ -111,7 +123,7 @@ export function render(container, data) {
 
     const label = document.createElement('div');
     label.className = 'section-label';
-    label.textContent = 'CAUSES';
+    label.textContent = 'Causes';
     section.appendChild(label);
 
     const causesGroups = [];
@@ -123,7 +135,7 @@ export function render(container, data) {
     for (const row of rows) {
       const rowEl = document.createElement('div');
       rowEl.className = 'group-row';
-      rowEl.style.gridTemplateColumns = getGridTemplate(row);
+      rowEl.style.setProperty('--hips-cols', getGridTemplate(row));
 
       for (const group of row) {
         const boxEl = createBoxElement(group.typeName, group.items);
@@ -133,6 +145,7 @@ export function render(container, data) {
       section.appendChild(rowEl);
     }
 
+    flagConduitLane(section, rows.length, causesEls.length);
     wrapper.appendChild(section);
   }
 
@@ -140,6 +153,9 @@ export function render(container, data) {
   const svgNS = 'http://www.w3.org/2000/svg';
   const svgEl = document.createElementNS(svgNS, 'svg');
   svgEl.setAttribute('class', 'connector-overlay');
+  // Decorative: the section labels already say which way each group relates.
+  svgEl.setAttribute('aria-hidden', 'true');
+  svgEl.setAttribute('focusable', 'false');
   wrapper.appendChild(svgEl);
 
   container.appendChild(wrapper);
@@ -151,49 +167,12 @@ export function render(container, data) {
 }
 
 /**
- * Split type groups into 1 or 2 rows for balanced layout.
- *
- * - N <= 4 groups: all in a single row
- * - N > 4 groups: greedy balanced split — sort by item count descending,
- *   assign each group to the lighter row
- *
- * @param {Array<{ typeName: string, items: Array }>} groups
- * @returns {Array<Array<{ typeName: string, items: Array }>>} 1 or 2 rows
+ * Mark a section so CSS reserves a right-hand lane for the connector conduit.
+ * @param {HTMLElement} section
+ * @param {number} rowCount - Rows rendered at full width
+ * @param {number} boxCount - Type boxes in the section
  */
-function splitIntoRows(groups) {
-  if (groups.length <= 4) return [groups];
-
-  const row1 = [];
-  const row2 = [];
-  let count1 = 0;
-  let count2 = 0;
-
-  const sorted = [...groups].sort((a, b) => b.items.length - a.items.length);
-  for (const g of sorted) {
-    if (count1 <= count2) {
-      row1.push(g);
-      count1 += g.items.length;
-    } else {
-      row2.push(g);
-      count2 += g.items.length;
-    }
-  }
-
-  return [row1, row2].filter(r => r.length > 0);
-}
-
-/**
- * Generate a CSS grid-template-columns value weighted by item count.
- * Groups with more items get proportionally wider columns.
- *
- * Example for 3 groups with 5, 2, and 4 items:
- *   "minmax(140px, 5fr) minmax(140px, 2fr) minmax(140px, 4fr)"
- *
- * @param {Array<{ items: Array }>} rowGroups
- * @returns {string} CSS grid-template-columns value
- */
-function getGridTemplate(rowGroups) {
-  return rowGroups
-    .map(g => `minmax(140px, ${Math.max(1, g.items.length)}fr)`)
-    .join(' ');
+function flagConduitLane(section, rowCount, boxCount) {
+  section.classList.toggle('section--multirow', rowCount > 1);
+  section.classList.toggle('section--multibox', boxCount > 1);
 }

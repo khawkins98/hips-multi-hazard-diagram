@@ -1,0 +1,257 @@
+/* Diagram styles, shared by the standalone page and the embed script.
+
+   Every selector is scoped under .hips-diagram so the embed never affects
+   the host page. Page-level resets for the standalone page live in styles.css.
+
+   Theming: when the host page loads UNDRR Mangrove, the diagram picks up its
+   font, text, link and focus-ring tokens. Without Mangrove the fallbacks
+   below apply. Mangrove colour tokens are sRGB channel triples, so they are
+   always wrapped in rgb(). The hazard-type colours are not themed: they come
+   from the UNDRR-ISC classification wheel (see src/data/hazard-types.js). */
+
+.hips-diagram {
+  --hips-color-text: rgb(var(--mg-color-text, 51 51 51));
+  --hips-color-muted: rgb(var(--mg-color-neutral-600, 77 77 77));
+  --hips-color-link: rgb(var(--mg-color-interactive, 21 101 192));
+  --hips-color-focus: rgb(var(--mg-color-focus-ring, 134 98 0));
+  --hips-focus-width: var(--mg-focus-ring-width, 2px);
+  --hips-focus-offset: var(--mg-focus-ring-offset, 2px);
+  --hips-focus-radius: var(--mg-focus-ring-radius, 2px);
+  /* Right-hand space kept free for the vertical connector conduit.
+     Must be wider than CONDUIT_MARGIN in connectors.js. */
+  --hips-conduit-lane: 32px;
+
+  container: hips-diagram / inline-size;
+  /* Safeguard: as a size container, the diagram no longer takes its width
+     from its content. In shrink-to-fit layouts (a flex row with no width, an
+     inline-block, a table cell) it would collapse to zero; this gives it a
+     narrow but readable width there instead. 288px + padding = 320px, the
+     narrowest common phone. Normal block layouts are unaffected. */
+  contain-intrinsic-inline-size: 288px;
+  font-family: var(--mg-font-family-text, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif);
+  color: var(--hips-color-text);
+  line-height: 1.4;
+  max-width: 860px;
+  margin: 0 auto;
+  padding: 16px;
+}
+
+.hips-diagram,
+.hips-diagram *,
+.hips-diagram *::before,
+.hips-diagram *::after {
+  box-sizing: border-box;
+}
+
+/* Diagram wrapper — positions the SVG connector overlay */
+.hips-diagram .diagram-wrapper {
+  position: relative;
+  max-width: 860px;
+  margin: 0 auto;
+}
+
+/* Section labels */
+.hips-diagram .section-label {
+  font-size: 13px;
+  font-weight: bold;
+  color: var(--hips-color-muted);
+  margin-bottom: 10px;
+}
+
+/* Row of type boxes — CSS grid. Columns come from render.js via --hips-cols,
+   weighted by item count. */
+.hips-diagram .group-row {
+  display: grid;
+  grid-template-columns: var(--hips-cols, 1fr);
+  gap: 12px;
+  margin-bottom: 32px;
+}
+
+/* Sections drawn as 2+ rows route connectors through a conduit on the right */
+.hips-diagram .section--multirow .group-row {
+  margin-right: var(--hips-conduit-lane);
+}
+
+/* Individual type box */
+.hips-diagram .type-box {
+  border-width: 2px;
+  border-style: solid;
+  border-color: var(--type-border, #9E9E9E);
+  background: var(--type-bg, #F5F5F5);
+  border-radius: 6px;
+  padding: 12px 14px;
+  text-align: center;
+  min-width: 0;
+}
+
+.hips-diagram .type-box__header {
+  font-weight: bold;
+  font-size: 13px;
+  color: var(--type-text, #6F6F6F);
+  margin-bottom: 6px;
+}
+
+.hips-diagram .type-box__content {
+  font-size: 11px;
+  line-height: 1.6;
+  overflow-wrap: break-word;
+}
+
+/* Center hazard node */
+.hips-diagram .center-node {
+  display: inline-block;
+  padding: 12px 28px;
+  background: #F5F5F5;
+  border: 2.5px solid #424242;
+  border-radius: 8px;
+  font-size: 15px;
+  font-weight: bold;
+  color: #212121;
+}
+
+.hips-diagram .center-node-wrapper {
+  text-align: center;
+  margin: 48px 0;
+}
+
+/* SVG connector overlay */
+.hips-diagram .connector-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  overflow: visible;
+}
+
+/* Links: hazard codes and links in the error state */
+.hips-diagram .hazard-link,
+.hips-diagram .error-state a {
+  color: var(--hips-color-link);
+  text-decoration: underline;
+}
+
+/* Hover thickens the underline instead of changing colour: Mangrove's
+   hover colours drop below 4.5:1 on some type tints. */
+.hips-diagram .hazard-link:hover,
+.hips-diagram .error-state a:hover {
+  text-decoration-thickness: 2px;
+}
+
+.hips-diagram a:focus-visible {
+  outline: var(--hips-focus-width) solid var(--hips-color-focus);
+  outline-offset: var(--hips-focus-offset);
+  border-radius: var(--hips-focus-radius);
+}
+
+/* Loading state */
+.hips-diagram .loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 200px;
+  gap: 16px;
+  color: var(--hips-color-muted);
+}
+
+.hips-diagram .spinner {
+  width: 36px;
+  height: 36px;
+  border: 3px solid #e0e0e0;
+  border-top-color: var(--hips-color-link);
+  border-radius: 50%;
+  animation: hips-spin 0.8s linear infinite;
+}
+
+@keyframes hips-spin {
+  to { transform: rotate(360deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hips-diagram .spinner {
+    animation-duration: 3s;
+  }
+}
+
+/* Error state */
+.hips-diagram .error-state {
+  max-width: 500px;
+  margin: 40px auto;
+  padding: 24px;
+  border: 1px solid #FFCDD2;
+  border-radius: 8px;
+  background: #FFF8F8;
+  text-align: center;
+}
+
+.hips-diagram .error-state h2 {
+  font-size: 18px;
+  color: #C62828;
+  margin: 0 0 12px;
+}
+
+.hips-diagram .error-state p {
+  font-size: 14px;
+  color: var(--hips-color-muted);
+  line-height: 1.6;
+  margin: 0;
+}
+
+.hips-diagram .error-state code {
+  background: #F5F5F5;
+  padding: 2px 6px;
+  border-radius: 3px;
+  font-size: 13px;
+}
+
+/* Narrow containers. Container queries (not viewport media queries) so an
+   embed in a narrow column reflows even on a wide screen. */
+@container hips-diagram (max-width: 640px) {
+  /* Let boxes wrap instead of overflowing; extra row gap leaves room for the
+     connector bus between wrapped rows. */
+  .hips-diagram .group-row {
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 150px), 1fr));
+    row-gap: 32px;
+  }
+
+  /* Any section with 2+ boxes may wrap, and so may need the conduit */
+  .hips-diagram .section--multibox .group-row {
+    margin-right: var(--hips-conduit-lane);
+  }
+}
+
+@container hips-diagram (max-width: 540px) {
+  .hips-diagram .type-box__header {
+    font-size: 12px;
+  }
+
+  .hips-diagram .center-node {
+    font-size: 14px;
+    padding: 10px 16px;
+  }
+
+  .hips-diagram .center-node-wrapper {
+    margin: 32px 0;
+  }
+
+  .hips-diagram .group-row {
+    column-gap: 8px;
+    margin-bottom: 24px;
+  }
+}
+
+@media (max-width: 540px) {
+  .hips-diagram {
+    padding: 8px;
+  }
+}
+
+/* Print */
+@media print {
+  .hips-diagram .connector-overlay line,
+  .hips-diagram .connector-overlay path {
+    stroke: #666 !important;
+  }
+}
