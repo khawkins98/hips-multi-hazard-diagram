@@ -70,9 +70,14 @@ See `CLAUDE.md` and `README.md` for the data flow and layout rules. Key files:
 ## Pull requests
 
 1. Branch from `main`. Use a descriptive prefix: `fix/…`, `feat/…`, `chore/…`, `docs/…`.
-2. Keep PRs focused. Unrelated cleanup in a separate PR is easier to review.
-3. Describe **what** and **why** in the PR body. Screenshots or short recordings are very helpful for any visual change — include before/after when applicable and mention which hazard codes you tested.
-4. Don't commit build artifacts (`dist/`) unless the change is specifically about the build output.
+2. **Title the PR as a commit subject.** PRs are squash merged, so the PR title becomes the commit subject on `main`. Use `<type>: <description>` (or `<type>(<scope>): <description>`), at most 72 characters:
+   - Types: `feat`, `fix`, `docs`, `chore`, `refactor`, `test`, `ci`, `build`, `perf`, `style`, `revert`
+   - Examples: `feat: add Mangrove theming`, `fix(embed): stop diagrams rendering twice`, `chore(deps): update vite to 8.3.5`
+
+   A CI check (`PR title`) enforces this. Locally, `npm install` enables a `commit-msg` hook that applies the same rule to your commits (`scripts/check-commit-subject.sh`). Skip it for a one-off with `git commit --no-verify`.
+3. Keep PRs focused. Unrelated cleanup in a separate PR is easier to review.
+4. Describe **what** and **why** in the PR body. Screenshots or short recordings are very helpful for any visual change — include before/after when applicable and mention which hazard codes you tested.
+5. Don't commit build artifacts (`dist/`) unless the change is specifically about the build output.
 
 ## Licensing of contributions
 

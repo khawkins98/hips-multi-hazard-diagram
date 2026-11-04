@@ -1,3 +1,6 @@
+<!-- PR title = squash commit subject on main: `<type>: <description>`, max 72 chars.
+     e.g. `feat: add Mangrove theming`, `fix(embed): stop double render`. See CONTRIBUTING.md. -->
+
 ## Summary
 
 <!-- What does this PR change, and why? -->

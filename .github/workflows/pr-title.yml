@@ -1,0 +1,24 @@
+name: PR title
+
+# We squash merge, so the PR title becomes the commit subject on main.
+# Same rule as the local commit-msg hook: scripts/check-commit-subject.sh
+
+on:
+  pull_request:
+    types: [opened, edited, reopened, synchronize]
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: Check PR title
+        env:
+          # Passed via env, never interpolated into the script, so a title
+          # can't inject shell commands.
+          PR_TITLE: ${{ github.event.pull_request.title }}
+        run: sh scripts/check-commit-subject.sh "$PR_TITLE" "PR title"
